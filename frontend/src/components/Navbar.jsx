@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { TOOLS } from "./data";
+import { TOOLS } from "../data";
 
-export default function Header() {
+
+export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const navRef = useRef(null);
@@ -38,7 +39,7 @@ export default function Header() {
           {/* Logo / Brand */}
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 bg-linear-to-r from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
                 TS
               </div>
               <span className="font-semibold text-lg text-gray-800">ToolSet</span>

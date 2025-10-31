@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const ToolCard = ({ href, icon, name, desc }) => {
   return (
-    <Link to={href} className=" border border-gray-500 rounded-md p-6">
+    <Link to={href} className=" border border-gray-500 rounded-md p-6 hover:scale-95 duration-300">
       <div className="main flex items-center gap-2">
         <img
           className=" w-10 h-10 bg-red-500 p-2 rounded-md"

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { TOOLS } from "../data";
-
+import gsap from "gsap";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -9,18 +9,25 @@ export default function Navbar() {
   const navRef = useRef(null);
   const dropdownTimeout = useRef(null);
 
-  // 🔸 Close dropdowns when clicking outside
+  // GSAP for Dropdown Animation
+  useEffect(() => {
+    if (openDropdown) {
+      gsap.fromTo(
+        ".dropdown-panel",
+        { opacity: 0, y: 10, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power2.out" }
+      );
+    }
+  }, [openDropdown]);
+
   useEffect(() => {
     function handler(e) {
-      if (!navRef.current?.contains(e.target)) {
-        setOpenDropdown(null);
-      }
+      if (!navRef.current?.contains(e.target)) setOpenDropdown(null);
     }
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
   }, []);
 
-  // 🧠 Hover open/close logic with delay (smooth + avoids accidental close)
   const handleMouseEnter = (id) => {
     clearTimeout(dropdownTimeout.current);
     setOpenDropdown(id);
@@ -29,169 +36,104 @@ export default function Navbar() {
   const handleMouseLeave = () => {
     dropdownTimeout.current = setTimeout(() => {
       setOpenDropdown(null);
-    }, 200);
+    }, 150);
   };
 
   return (
-    <header className="w-full bg-gray-50/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition">
+    <header className="w-full bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo / Brand */}
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linear-to-r from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                TS
+          
+          {/* Logo Section */}
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-indigo-200 group-hover:rotate-12 transition-transform">
+                ST
               </div>
-              <span className="font-semibold text-lg text-gray-800">ToolSet</span>
+              <span className="font-black text-xl tracking-tighter text-gray-900">
+                Smart<span className="text-indigo-600">Tools</span>
+              </span>
             </Link>
+
+            {/* Desktop Navigation */}
+            <nav ref={navRef} className="hidden lg:flex items-center gap-1">
+              {TOOLS.map((cat) => (
+                <div
+                  key={cat.id}
+                  className="relative px-2 py-4"
+                  onMouseEnter={() => handleMouseEnter(cat.id)}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <button className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-bold transition-all ${openDropdown === cat.id ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}>
+                    {cat.title}
+                    <svg className={`w-4 h-4 transition-transform duration-300 ${openDropdown === cat.id ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+
+                  {/* 2-Column Dropdown Grid */}
+                  {openDropdown === cat.id && (
+                    <div className="dropdown-panel absolute left-0 mt-1 w-[450px] bg-white border border-gray-100 rounded-2xl shadow-2xl p-4 grid grid-cols-2 gap-2 origin-top">
+                      {cat.items.map((it) => (
+                        <Link
+                          key={it.href}
+                          to={it.href}
+                          className="flex items-start gap-3 p-3 rounded-xl hover:bg-indigo-50 transition-colors group"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-white transition-colors">
+                            {/* Icon fallback */}
+                            <span className="text-lg">{it.icon ? <img src={it.icon} className="w-5 h-5" alt=""/> : "🛠️"}</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-800 group-hover:text-indigo-700">{it.name}</p>
+                            <p className="text-[10px] text-gray-400 leading-tight line-clamp-1">{it.desc || "Smart utility tool"}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </nav>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav ref={navRef} className="hidden md:flex items-center gap-6">
-            {TOOLS.map((cat) => (
-              <div
-                key={cat.id}
-                className="relative"
-                onMouseEnter={() => handleMouseEnter(cat.id)}
-                onMouseLeave={handleMouseLeave}
-              >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setOpenDropdown((s) => (s === cat.id ? null : cat.id));
-                  }}
-                  className="px-3 py-2 rounded-md inline-flex items-center gap-2 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  <span>{cat.title}</span>
-                  <svg
-                    className="w-4 h-4"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    aria-hidden
-                  >
-                    <path
-                      d="M6 8l4 4 4-4"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-
-                {/* Dropdown Panel */}
-                {openDropdown === cat.id && (
-                  <div
-                    className="absolute left-0 mt-2 w-52 bg-white/90 border border-gray-200 rounded-lg shadow-lg py-2 backdrop-blur-md"
-                    onMouseEnter={() => handleMouseEnter(cat.id)}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    {cat.items.map((it) => (
-                      <Link
-                        key={it.href}
-                        to={it.href}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        {it.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* Search Bar */}
-            <div className="ml-4">
+          {/* Right Actions */}
+          <div className="hidden md:flex items-center gap-4">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
               <input
                 type="search"
-                placeholder="Search tools..."
-                className="px-3 py-2 rounded-md border w-64 bg-white/90 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Find a tool..."
+                className="pl-9 pr-4 py-2 bg-gray-100 border-none rounded-xl text-sm w-48 focus:w-64 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
               />
             </div>
-
-            <Link
-              to="/login"
-              className="ml-4 px-4 py-2 rounded-md border hover:bg-gray-100 transition"
-            >
-              Sign in
+            <Link to="/login" className="px-5 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-all shadow-lg shadow-gray-200">
+              Sign In
             </Link>
-          </nav>
-
-          {/* Mobile Hamburger */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setMobileOpen((s) => !s)}
-              aria-label="Toggle menu"
-              className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {mobileOpen ? (
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 6l12 12M6 18L18 6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M3 6h18M3 12h18M3 18h18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </button>
           </div>
+
+          {/* Mobile Toggle */}
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 text-gray-600">
+            {mobileOpen ? "✕" : "☰"}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu (Simplified) */}
       {mobileOpen && (
-        <div className="md:hidden border-t bg-gray-50">
-          <div className="px-4 py-3 space-y-2">
-            {TOOLS.map((cat) => (
-              <details
-                key={cat.id}
-                className="bg-white rounded-md"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <summary className="px-3 py-2 cursor-pointer list-none font-medium">
-                  {cat.title}
-                </summary>
-                <div className="px-2 pb-2">
-                  {cat.items.map((it) => (
-                    <Link
-                      key={it.href}
-                      to={it.href}
-                      className="block px-3 py-2 text-sm hover:bg-gray-100 rounded-md"
-                    >
-                      {it.name}
-                    </Link>
-                  ))}
-                </div>
-              </details>
-            ))}
-
-            <div>
-              <input
-                type="search"
-                placeholder="Search tools..."
-                className="px-3 py-2 rounded-md border w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
+        <div className="lg:hidden bg-white border-t p-4 space-y-4 shadow-xl h-screen overflow-y-auto">
+          {TOOLS.map((cat) => (
+            <div key={cat.id}>
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-2">{cat.title}</h3>
+              <div className="grid grid-cols-1 gap-1">
+                {cat.items.map((it) => (
+                  <Link key={it.href} to={it.href} className="p-3 bg-gray-50 rounded-xl text-sm font-bold flex items-center gap-3">
+                    <span>🛠️</span> {it.name}
+                  </Link>
+                ))}
+              </div>
             </div>
-
-            <Link
-              to="/login"
-              className="block text-center px-4 py-2 border rounded-md hover:bg-gray-100"
-            >
-              Sign in
-            </Link>
-          </div>
+          ))}
         </div>
       )}
     </header>

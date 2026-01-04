@@ -5,7 +5,6 @@ import ToolCard from "./ToolCard";
 
 const Hero = ({ category }) => {
   const previewTools = category.items.slice(0, 8);
-  console.log(previewTools); // show only first 4 tools
 
   return (
     <section className="mb-12 px-20 py-10">
